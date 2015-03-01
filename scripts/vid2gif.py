@@ -9,10 +9,13 @@ parser.add_argument("outfile", type=str, help="Output file")
 parser.add_argument("--start",'-s', help="Start time in HH:MM:SS")
 parser.add_argument("--length",'-l', help="Length of clip to extract")
 parser.add_argument("--width", "-w", help="Output width, default unchanged")
+parser.add_argument("--crop", type=str, help="crop to widthxheight+x+y") 
 parser.add_argument("--fps", "-f", help="Output frames per second, default 25")
 parser.add_argument("--colors", help="limit number of output colors")
 parser.add_argument("--optimisation", "-O", help="gifsicle optimisation level",
 		default='1')
+parser.add_argument("--loopreverse", "-L", help="play forwards then backwards",
+		action="store_true")
 
 args = parser.parse_args()
 
@@ -29,11 +32,17 @@ with tempfile.TemporaryDirectory() as tempdir:
 
 	ret = subprocess.check_call(ffmpeg_args)
 
-	temp_files = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
+	frames = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
+	if args.loopreverse:
+		frames = frames + list(reversed(frames))[1:-1]
+
+	#crop
+	if args.crop:
+		subprocess.check_call(['mogrify', '-crop', args.crop,] + frames)
 
 	#resize
 	if args.width:
-		subprocess.check_call(['mogrify', '-resize', args.width,] + temp_files)
+		subprocess.check_call(['mogrify', '-resize', args.width,] + frames)
 
 	#merge
 	conv_args = ['gifsicle', '--loop',]
@@ -45,7 +54,7 @@ with tempfile.TemporaryDirectory() as tempdir:
 		conv_args += ['--delay', '4',]
 	conv_args += ['-O{}'.format(args.optimisation),]
 
-	conv_args += temp_files 
+	conv_args += frames
 	conv_args += ['-o', args.outfile]
 	ret = subprocess.check_call(conv_args)
 
