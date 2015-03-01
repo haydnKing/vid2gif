@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import argparse, tempfile, subprocess, os, os.path
+import argparse, tempfile, subprocess, os, os.path, shutil
 
 #parse arguments
 parser = argparse.ArgumentParser(description="Convert a video into a gif")
@@ -33,16 +33,17 @@ with tempfile.TemporaryDirectory() as tempdir:
 	ret = subprocess.check_call(ffmpeg_args)
 
 	frames = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
-	if args.loopreverse:
-		frames = frames + list(reversed(frames))[1:-1]
 
 	#crop
 	if args.crop:
-		subprocess.check_call(['mogrify', '-crop', args.crop,] + frames)
+		subprocess.check_call(['mogrify', '-crop', args.crop, '+repage'] + frames)
 
 	#resize
 	if args.width:
 		subprocess.check_call(['mogrify', '-resize', args.width,] + frames)
+	
+	if args.loopreverse:
+		frames = frames + list(reversed(frames))[1:-1]
 
 	#merge
 	conv_args = ['gifsicle', '--loop',]
