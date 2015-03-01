@@ -20,7 +20,6 @@ parser.add_argument("--loopreverse", "-L", help="play forwards then backwards",
 args = parser.parse_args()
 
 with tempfile.TemporaryDirectory() as tempdir:
-	print("Using temporary directory \"{}\"".format(tempdir))
 	
 	#extract
 	ffmpeg_args = ['ffmpeg',]
@@ -30,7 +29,8 @@ with tempfile.TemporaryDirectory() as tempdir:
 		ffmpeg_args += ['-ss', args.start]
 	ffmpeg_args += ['-i', args.infile, os.path.join(tempdir, 'out%04d.gif')]
 
-	ret = subprocess.check_call(ffmpeg_args)
+	with open(os.devnull, "w") as devnull:
+		ret = subprocess.check_call(ffmpeg_args, stdout=devnull, stderr=devnull)
 
 	frames = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
 
