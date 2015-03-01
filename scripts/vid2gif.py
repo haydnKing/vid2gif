@@ -9,7 +9,7 @@ parser.add_argument("outfile", type=str, help="Output file")
 parser.add_argument("--start",'-s', help="Start time in HH:MM:SS")
 parser.add_argument("--length",'-l', help="Length of clip to extract")
 parser.add_argument("--width", "-w", help="Output width, default unchanged")
-parser.add_argument("--crop", type=str, help="crop to widthxheight+x+y") 
+parser.add_argument("--crop", type=str, metavar="WIDTHxHEIGHT+XOFFSET+YOFFSET", help="crop to widthxheight+x+y") 
 parser.add_argument("--fps", "-f", help="Output frames per second, default 25")
 parser.add_argument("--colors", help="limit number of output colors")
 parser.add_argument("--optimisation", "-O", help="gifsicle optimisation level",
