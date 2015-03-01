@@ -22,14 +22,17 @@ args = parser.parse_args()
 with tempfile.TemporaryDirectory() as tempdir:
 	
 	#extract
-	ffmpeg_args = ['ffmpeg',]
+	ffmpeg_args = ['ffmpeg','-i', args.infile,]
+	if args.width:
+		ffmpeg_args += ['-vf', 'scale={}:-1'.format(args.width)]
 	if args.length:
 		ffmpeg_args += ['-t', args.length]
 	if args.start:
 		ffmpeg_args += ['-ss', args.start]
-	ffmpeg_args += ['-i', args.infile, os.path.join(tempdir, 'out%04d.gif')]
+	ffmpeg_args += [os.path.join(tempdir, 'out%04d.gif')]
 
 	with open(os.devnull, "w") as devnull:
+		print(" ".join(ffmpeg_args))
 		ret = subprocess.check_call(ffmpeg_args, stdout=devnull, stderr=devnull)
 
 	frames = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
@@ -39,8 +42,8 @@ with tempfile.TemporaryDirectory() as tempdir:
 		subprocess.check_call(['mogrify', '-crop', args.crop, '+repage'] + frames)
 
 	#resize
-	if args.width:
-		subprocess.check_call(['mogrify', '-resize', args.width,] + frames)
+	#if args.width:
+	#	subprocess.check_call(['mogrify', '-resize', args.width,] + frames)
 	
 	if args.loopreverse:
 		frames = frames + list(reversed(frames))[1:-1]
