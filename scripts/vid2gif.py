@@ -67,16 +67,17 @@ def validate_args(args):
 	
 
 def get_ffmpeg_args(args, tempdir, preview=False, outext='gif'):
-	cmd = 'ffplay' if preview else 'ffmpeg'
 
-	ffmpeg_args = [cmd,'-i', args.infile,]
-	if args.length:
-		ffmpeg_args += ['-t', args.length]
+	ffmpeg_args = ['ffplay' if preview else 'ffmpeg',]
 	if args.start:
 		ffmpeg_args += ['-ss', args.start]
+	if args.length:
+		ffmpeg_args += ['-t', args.length]
 	
+	ffmpeg_args += ['-i', args.infile,]
+
 	if preview:
-		ffmpeg_args += ['-an']
+		ffmpeg_args += ['-an', '-loop', '0',]
 	else:
 		ffmpeg_args += [os.path.join(tempdir, 'out%04d.{}'.format(outext))]
 
