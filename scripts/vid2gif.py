@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import argparse, tempfile, subprocess, os, os.path, shutil
+import argparse, tempfile, subprocess, os, os.path, shutil, sys
 
 #parse arguments
 parser = argparse.ArgumentParser(description="Convert a video into a gif")
@@ -19,9 +19,7 @@ parser.add_argument("--loopreverse", "-L", help="play forwards then backwards",
 
 args = parser.parse_args()
 
-with tempfile.TemporaryDirectory() as tempdir:
-	
-	#extract
+def get_ffmpeg_args(args, tempdir, preview=False):
 	ffmpeg_args = ['ffmpeg','-i', args.infile,]
 	if args.width:
 		ffmpeg_args += ['-vf', 'scale={}:-1'.format(args.width)]
@@ -31,9 +29,27 @@ with tempfile.TemporaryDirectory() as tempdir:
 		ffmpeg_args += ['-ss', args.start]
 	ffmpeg_args += [os.path.join(tempdir, 'out%04d.gif')]
 
-	with open(os.devnull, "w") as devnull:
-		print(" ".join(ffmpeg_args))
-		ret = subprocess.check_call(ffmpeg_args, stdout=devnull, stderr=devnull)
+	return ffmpeg_args
+
+def run_external(arglist, debug=True):
+	#with open(os.devnull, "w") as devnull:
+	if debug:
+		print(" ".join(arglist))
+	try:
+		subprocess.check_output(arglist, stderr=subprocess.STDOUT)#, stdout=devnull, stderr=devnull)
+	except subprocess.CalledProcessError as e:
+		print('Error running \'{}\':\n\t{}'.format(
+			arglist[0],
+			e.output.replace('\n','\n\t')))
+		sys.exit(-1)
+
+
+with tempfile.TemporaryDirectory() as tempdir:
+	
+	#extract
+	ffmpeg_args = get_ffmpeg_args(args, tempdir)
+
+	run_external(ffmpeg_args)
 
 	frames = [os.path.join(tempdir, x) for x in sorted(os.listdir(tempdir))]
 
@@ -41,10 +57,6 @@ with tempfile.TemporaryDirectory() as tempdir:
 	if args.crop:
 		subprocess.check_call(['mogrify', '-crop', args.crop, '+repage'] + frames)
 
-	#resize
-	#if args.width:
-	#	subprocess.check_call(['mogrify', '-resize', args.width,] + frames)
-	
 	if args.loopreverse:
 		frames = frames + list(reversed(frames))[1:-1]
 
