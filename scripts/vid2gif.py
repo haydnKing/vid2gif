@@ -102,7 +102,7 @@ def run_external(arglist, debug=False):
 	if debug:
 		print(" ".join(arglist))
 	try:
-		subprocess.check_output(arglist, stderr=subprocess.STDOUT)
+		return subprocess.check_output(arglist, stderr=subprocess.STDOUT)
 	except subprocess.CalledProcessError as e:
 		print('Error running \'{}\':\n\t{}'.format(
 			arglist[0],
@@ -124,7 +124,7 @@ def main():
 		run_external(get_ffmpeg_args(args, 
 																 tempdir, 
 																 preview=args.preview,
-																 outext='gif'),
+																 outext='png'),
 								 debug=args.debug)
 		if args.preview:
 			sys.exit(0)
@@ -149,8 +149,8 @@ def main():
 			frames = frames + list(reversed(frames))[1:-1]
 
 		#merge
-		run_external(get_merge_args(args, frames),
-								 debug=args.debug)
+		print(run_external(get_merge_args(args, frames),
+											 debug=args.debug).decode('UTF-8'))
 
 if __name__ == '__main__':
 	main()
