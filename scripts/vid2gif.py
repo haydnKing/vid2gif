@@ -46,6 +46,9 @@ def get_args():
 											"--loopreverse", 
 											help="play forwards then backwards",
 											action="store_true")
+	parser.add_argument("--debug", 
+											help="Show debug info",
+											action="store_true")
 	args =  parser.parse_args()
 
 	if args.crop:
@@ -95,7 +98,7 @@ def get_merge_args(args, frames):
 	return merge_args
 
 
-def run_external(arglist, debug=True):
+def run_external(arglist, debug=False):
 	if debug:
 		print(" ".join(arglist))
 	try:
@@ -121,7 +124,8 @@ def main():
 		run_external(get_ffmpeg_args(args, 
 																 tempdir, 
 																 preview=args.preview,
-																 outext='gif'))
+																 outext='gif'),
+								 debug=args.debug)
 		if args.preview:
 			sys.exit(0)
 
@@ -145,7 +149,8 @@ def main():
 			frames = frames + list(reversed(frames))[1:-1]
 
 		#merge
-		run_external(get_merge_args(args, frames))
+		run_external(get_merge_args(args, frames),
+								 debug=args.debug)
 
 if __name__ == '__main__':
 	main()
